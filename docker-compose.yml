@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hero-force-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    networks:
+      - hero-network
+    depends_on:
+      - db
+
+  # Placeholder para o futuro frontend
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: hero-force-frontend
+  #   ports:
+  #     - "5173:5173" # Porta comum para Vite/React/Vue, ajuste conforme necessário (ex: 3000, 4200)
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   networks:
+  #     - hero-network
+  #   depends_on:
+  #     - backend
+
+  db:
+    image: postgres:15-alpine
+    container_name: hero-force-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hero-network
+
+networks:
+  hero-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
