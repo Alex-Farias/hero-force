@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from "@nestjs/common";
 import { ProjectResponseDto } from "./dto/response-project.dto";
 import { ProjectUpdateDto } from "./dto/update-project.dto";
 import { ProjectCreateDto } from "./dto/create-project.dto";
 import { ProjectService } from "./project.service";
+import { AuthGuard } from "@nestjs/passport";
 
 @Controller('projects')
+@UseGuards(AuthGuard('jwt'))
 export class ProjectController {
     constructor(private readonly userService: ProjectService) {}
 
@@ -14,8 +16,8 @@ export class ProjectController {
     }
 
     @Get('read/:id')
-    async findOne(@Param('id', ParseIntPipe) id: number): Promise<ProjectResponseDto> {
-        return this.userService.findOne(id);
+    async findById(@Param('id', ParseIntPipe) id: number): Promise<ProjectResponseDto> {
+        return this.userService.findById(id);
     }
 
     @Post('create')

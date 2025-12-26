@@ -19,7 +19,7 @@ export class ProjectService {
         return Promise.all(projects.map(project => new ProjectResponseDto(project)));
     }
 
-    async findOne(id: number): Promise<ProjectResponseDto> {
+    async findById(id: number): Promise<ProjectResponseDto> {
         const project = await this.projectRepository.findOne({ where: { id_project: id }, relations: ['user'] });
         if(!project) {throw new Error('Project not found');}
         return new ProjectResponseDto(project);
