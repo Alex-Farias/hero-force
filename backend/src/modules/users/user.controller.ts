@@ -1,21 +1,26 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { UserCreateDto } from "./dto/create-user.dto";
 import { UserResponseDto } from "./dto/response-user.dto";
 import { UserUpdateDto } from "./dto/update-user.dto";
+import { AuthGuard } from "@nestjs/passport";
 
 @Controller('users')
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
     @Get('read/all')
+    @UseGuards(AuthGuard('jwt'))
     async findAll(): Promise<UserResponseDto[]> {
         return this.userService.findAll();
     }
 
     @Get('read/:id')
-    async findOne(@Param('id', ParseIntPipe) id: number): Promise<UserResponseDto> {
-        return this.userService.findOne(id);
+    @UseGuards(AuthGuard('jwt'))
+    async findById(@Param('id', ParseIntPipe) id: number): Promise<UserResponseDto | null> {
+        const user = await this.userService.findById(id);
+        if(!user) { throw new NotFoundException('User not found') }
+        return user;
     }
 
     @Post('create')
@@ -24,6 +29,7 @@ export class UserController {
     }
 
     @Put('update/:id')
+    @UseGuards(AuthGuard('jwt'))
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UserUpdateDto
@@ -32,6 +38,7 @@ export class UserController {
     }
 
     @Delete('delete/:id')
+    @UseGuards(AuthGuard('jwt'))
     async remove(@Param('id', ParseIntPipe) id: number): Promise<boolean> {
         return this.userService.remove(id);
     }
