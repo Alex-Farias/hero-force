@@ -1,5 +1,5 @@
 import { InjectRepository } from "@nestjs/typeorm";
-import { UserEntity } from "./entities/user.entity";
+import { UserEntity, UserRole } from "./entities/user.entity";
 import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { UserResponseDto } from "./dto/response-user.dto";
@@ -15,13 +15,17 @@ export class UserService {
         private readonly userRepository: Repository<UserEntity>,
     ) {}
 
-    async findAll(): Promise<UserResponseDto[]> {
+    async findAll(role: UserResponseDto): Promise<UserResponseDto[]> {
+        if(await this.checkPermission(role) === false) { throw new Error('User not authorized') }
+
         const users = await this.userRepository.find({ where: { isActive: true } });
         if(!users || users.length === 0) { return [] }
         return Promise.all(users.map(user => new UserResponseDto(user)));
     }
 
-    async findById(id: number): Promise<UserResponseDto | null> {
+    async findById(id: number, role: UserResponseDto): Promise<UserResponseDto | null> {
+        if(await this.checkPermission(role) === false) { throw new Error('User not authorized') }
+
         const user = await this.userRepository.findOneBy({ id_user: id, isActive: true });
         if(!user) { return null }
         return new UserResponseDto(user);
@@ -33,9 +37,9 @@ export class UserService {
         return new UserResponseDto(user);
     }
 
-    async findForAuth(email: string): Promise<AuthLoginDto> {
+    async findForAuth(email: string): Promise<AuthLoginDto | null> {
         const user =  await this.userRepository.findOneBy({ email: email, isActive: true });
-        if(!user) { throw new Error('User not found')}
+        if(!user) { return null }
         return new AuthLoginDto(user);
     }
 
@@ -48,10 +52,12 @@ export class UserService {
         return new UserResponseDto(newUser);
     }
 
-    async update(id: number, dto: UserUpdateDto): Promise<UserResponseDto> {
+    async update(id: number, dto: UserUpdateDto, role: UserResponseDto): Promise<UserResponseDto> {
+        if(await this.checkPermission(role, id) === false) { throw new Error('User not authorized') }
+
         const oldEntity = await this.userRepository.findOneBy({ id_user: id, isActive: true });
         if(!oldEntity) { throw new Error('User not found or already inactive') }
-        if(!await this.remove(id)) { throw new Error('User not found') }
+        if(!await this.remove(id, role)) { throw new Error('User not found') }
 
         const updatedUser = await this.userRepository.create({
             ...oldEntity,
@@ -62,11 +68,13 @@ export class UserService {
         const savedUser = await this.userRepository.save(updatedUser);
         
         if(!savedUser) throw new Error('User not updated');
-        
+
         return new UserResponseDto(savedUser);   
     }
 
-    async remove(id: number): Promise<boolean> {
+    async remove(id: number, role: UserResponseDto): Promise<boolean> {
+        if(await this.checkPermission(role) === false) { throw new Error('User not authorized') }
+
         const result = await this.userRepository.update(
             { id_user: id, isActive: true }, 
             { isActive: false }
@@ -74,6 +82,12 @@ export class UserService {
         return result.affected ? result.affected > 0 : false;
     }
     
+    async checkPermission(reqUser: UserResponseDto, userId?: number): Promise<boolean> {
+        if(reqUser.role === UserRole.ADMIN) { return true }
+        if(userId && reqUser.id === userId) { return true }
+        return false;
+    }
+
     async checkEmailExists(email: string): Promise<boolean> {
         const user = await this.findByEmail(email);
         return !!user;
