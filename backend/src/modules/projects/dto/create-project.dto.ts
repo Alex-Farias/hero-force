@@ -1,4 +1,6 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { ProjectStatus } from "../entities/project.entity";
+import { UserResponseDto } from "src/modules/users/dto/response-user.dto";
 
 export class ProjectCreateDto {
     @IsString()
@@ -9,9 +11,8 @@ export class ProjectCreateDto {
     @IsNotEmpty()
     description: string;
     
-    @IsString()
-    @IsNotEmpty()
-    status: string;
+    @IsOptional()
+    status: ProjectStatus;
     
     @IsString()
     @IsNotEmpty()
@@ -19,5 +20,5 @@ export class ProjectCreateDto {
     
     @IsNumber()
     @IsNotEmpty()
-    userId: number;
+    userId: UserResponseDto;
 }

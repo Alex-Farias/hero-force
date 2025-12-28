@@ -1,6 +1,7 @@
 import { IsBoolean, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ProjectEntity } from "../entities/project.entity";
 import { UserResponseDto } from "src/modules/users/dto/response-user.dto";
+import { UserEntity } from "src/modules/users/entities/user.entity";
 
 export class ProjectResponseDto {
     @IsNumber()
@@ -25,7 +26,7 @@ export class ProjectResponseDto {
     
     @IsNumber()
     @IsNotEmpty()
-    user: UserResponseDto;
+    user: UserEntity;
 
     @IsDate()
     @IsOptional()
@@ -43,7 +44,7 @@ export class ProjectResponseDto {
             this.description = project.description!;
             this.status = project.status!;
             this.goals = project.goals!;
-            this.user = new UserResponseDto(project.user);
+            this.user = project.user!;
             this.createdAt = project.createdAt;
             this.isActive = project.isActive;
         }
