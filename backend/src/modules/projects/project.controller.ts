@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Request, UseGuards } from "@nestjs/common";
 import { ProjectResponseDto } from "./dto/response-project.dto";
 import { ProjectUpdateDto } from "./dto/update-project.dto";
 import { ProjectCreateDto } from "./dto/create-project.dto";
@@ -11,13 +11,13 @@ export class ProjectController {
     constructor(private readonly userService: ProjectService) {}
 
     @Get('read/all')
-    async findAll(): Promise<ProjectResponseDto[]> {
-        return this.userService.findAll();
+    async findAll(@Request() req): Promise<ProjectResponseDto[]> {
+        return this.userService.findAll(req.user);
     }
 
     @Get('read/:id')
-    async findById(@Param('id', ParseIntPipe) id: number): Promise<ProjectResponseDto> {
-        return this.userService.findById(id);
+    async findById(@Param('id', ParseIntPipe) id: number, @Request() req): Promise<ProjectResponseDto> {
+        return this.userService.findById(id, req.user);
     }
 
     @Post('create')
@@ -28,13 +28,14 @@ export class ProjectController {
     @Put('update/:id')
     async update(
         @Param('id', ParseIntPipe) id: number,
-        @Body() dto: ProjectUpdateDto
+        @Body() dto: ProjectUpdateDto,
+        @Request() req
     ): Promise<ProjectResponseDto> {
-        return this.userService.update(id, dto);
+        return this.userService.update(id, dto, req.user);
     }
 
     @Delete('delete/:id')
-    async remove(@Param('id', ParseIntPipe) id: number): Promise<boolean> {
-        return this.userService.remove(id);
+    async remove(@Param('id', ParseIntPipe) id: number, @Request() req): Promise<boolean> {
+        return this.userService.remove(id, req.user);
     }
 }

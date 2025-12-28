@@ -5,6 +5,8 @@ import { Injectable } from "@nestjs/common";
 import { ProjectResponseDto } from "./dto/response-project.dto";
 import { ProjectCreateDto } from "./dto/create-project.dto";
 import { ProjectUpdateDto } from "./dto/update-project.dto";
+import { UserRole } from "../users/entities/user.entity";
+import { UserResponseDto } from "../users/dto/response-user.dto";
 
 @Injectable()
 export class ProjectService {
@@ -13,13 +15,17 @@ export class ProjectService {
         private readonly projectRepository: Repository<ProjectEntity>,
     ) {}
 
-    async findAll(): Promise<ProjectResponseDto[]> {
+    async findAll(role: UserResponseDto): Promise<ProjectResponseDto[]> {
+        if(await this.checkPermission(role) === false) { throw new Error('User not authorized') }
+
         const projects = await this.projectRepository.find({ where: { isActive: true }, relations: ['user'] });
         if(!projects || projects.length === 0) { return [] }
         return Promise.all(projects.map(project => new ProjectResponseDto(project)));
     }
 
-    async findById(id: number): Promise<ProjectResponseDto> {
+    async findById(id: number, role: UserResponseDto): Promise<ProjectResponseDto> {
+        if(await this.checkPermission(role) === false) { throw new Error('User not authorized') }
+
         const project = await this.projectRepository.findOne({ where: { id_project: id }, relations: ['user'] });
         if(!project) {throw new Error('Project not found');}
         return new ProjectResponseDto(project);
@@ -28,15 +34,16 @@ export class ProjectService {
     async create(dto: ProjectCreateDto): Promise<ProjectResponseDto> {
         const newProject = this.projectRepository.create(dto);
         await this.projectRepository.save(newProject);
-        console.log('Created project:', newProject);
         return new ProjectResponseDto(newProject);
     }
 
-    async update(id: number, dto: ProjectUpdateDto): Promise<ProjectResponseDto> {
+    async update(id: number, dto: ProjectUpdateDto, role: UserResponseDto): Promise<ProjectResponseDto> {
+        if(await this.checkPermission(role) === false) { throw new Error('User not authorized') }
+
         const oldProject = await this.projectRepository.findOneBy({ id_project: id, isActive: true });
         if(!oldProject) { throw new Error('Project not found or already inactive') }
 
-        if(await this.remove(id)) {
+        if(await this.remove(id, role)) {
             const updatedProject = await this.projectRepository.create({
                 ...oldProject,
                 ...dto,
@@ -51,7 +58,9 @@ export class ProjectService {
         throw new Error('Project not found');
     }
 
-    async remove(id: number): Promise<boolean> {
+    async remove(id: number, role: UserResponseDto): Promise<boolean> {
+        if(await this.checkPermission(role) === false) { throw new Error('User not authorized') }
+
         if (await this.projectRepository.update(
             { id_project: id }, 
             { isActive: false }
@@ -60,5 +69,10 @@ export class ProjectService {
         }
         throw new Error('Project not found');
     }
-    
+
+    async checkPermission(reqUser: UserResponseDto, userId?: number): Promise<boolean> {
+        if(reqUser.role === UserRole.ADMIN) { return true }
+        if(userId && reqUser.id === userId) { return true }
+        return false;
+    }
 }
