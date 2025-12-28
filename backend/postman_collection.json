@@ -60,7 +60,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"bruce@hulk.com\",\n    \"password\": \"smash\"\n}",
+							"raw": "{\n    \"email\": \"bruce@hulk.com\",\n    \"password\": \"smashs\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -99,7 +99,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Bruce Banner\",\n    \"email\": \"bruce@hulk.com\",\n    \"password\": \"smash\",\n    \"persona\": \"Hero\"\n}",
+							"raw": "{\n    \"name\": \"Bruce Banner\",\n    \"email\": \"bruce@hulk.com\",\n    \"password\": \"smashs\",\n    \"role\": \"hero\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -151,7 +151,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Tony Stark\",\n    \"email\": \"tony@stark.com\",\n    \"password\": \"jarvis123\",\n    \"persona\": \"Hero\"\n}",
+							"raw": "{\n    \"name\": \"Tony Stark\",\n    \"email\": \"tony@stark.com\",\n    \"password\": \"jarvis123\",\n    \"role\": \"admin\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -336,7 +336,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Ultron Initiative\",\n    \"description\": \"Build a suit of armor around the world\",\n    \"status\": \"In Progress\",\n    \"goals\": \"World Peace\",\n    \"userId\": 1\n}",
+							"raw": "{\n    \"name\": \"Ultron Initiative\",\n    \"description\": \"Build a suit of armor around the world\",\n    \"status\": \"in_progress\",\n    \"goals\": \"World Peace\",\n    \"userId\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -437,7 +437,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"status\": \"Completed\"\n}",
+							"raw": "{\n    \"status\": \"completed\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
