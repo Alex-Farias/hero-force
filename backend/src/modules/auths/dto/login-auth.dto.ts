@@ -1,5 +1,5 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { UserEntity } from "src/modules/users/entities/user.entity";
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsEnum } from "class-validator";
+import { UserEntity, UserRole } from "src/modules/users/entities/user.entity";
 
 export class AuthLoginDto {
     @IsNumber()
@@ -14,11 +14,16 @@ export class AuthLoginDto {
     @IsNotEmpty()
     password: string;
 
+    @IsEnum(UserRole)
+    @IsOptional()
+    role?: UserRole;
+
     constructor(user?: Partial<UserEntity>) {
         if (user) {
             this.id = user.id_user;
             this.email = user.email!;
             this.password = user.password!;
+            this.role = user.role;
         }
     }
 }
