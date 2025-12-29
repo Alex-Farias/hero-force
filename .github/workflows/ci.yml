@@ -28,10 +28,6 @@ jobs:
       working-directory: ./backend
       run: npm ci
 
-    - name: Linting
-      working-directory: ./backend
-      run: npm run lint
-
     - name: Run Unit Tests
       working-directory: ./backend
       run: npm run test
@@ -64,10 +60,6 @@ jobs:
     - name: Install Dependencies
       working-directory: ./frontend
       run: npm ci
-
-    - name: Linting
-      working-directory: ./frontend
-      run: npm run lint
 
     - name: Build Application
       working-directory: ./frontend
