@@ -19,11 +19,13 @@ export class SeedService implements OnModuleInit {
 
   private async seedAdminUser() {
     const adminEmail = 'arqueiro@heroforce.com';
-    const adminExists = await this.userRepository.findOneBy({ email: adminEmail });
+    const adminExists = await this.userRepository.findOneBy({
+      email: adminEmail,
+    });
 
     if (!adminExists) {
       this.logger.log('Seeding admin user...');
-      
+
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash('Arrow&Quiver.2001', salt);
 
