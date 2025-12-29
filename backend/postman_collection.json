@@ -60,7 +60,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"bruce@hulk.com\",\n    \"password\": \"smashs\"\n}",
+							"raw": "{\n    \"email\": \"admin@heroforce.com\",\n    \"password\": \"Admin@123456\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -99,7 +99,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Bruce Banner\",\n    \"email\": \"bruce@hulk.com\",\n    \"password\": \"smashs\",\n    \"role\": \"hero\"\n}",
+							"raw": "{\n    \"name\": \"Bruce Banner\",\n    \"email\": \"bruce@hulk.com\",\n    \"password\": \"smashs\",\n    \"role\": \"User\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -151,7 +151,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Tony Stark\",\n    \"email\": \"tony@stark.com\",\n    \"password\": \"jarvis123\",\n    \"role\": \"admin\"\n}",
+							"raw": "{\n    \"name\": \"Tony Stark\",\n    \"email\": \"tony@stark.com\",\n    \"password\": \"jarvis123\",\n    \"role\": \"hero\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
