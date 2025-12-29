@@ -37,15 +37,15 @@ export function Header({ toggleSidebar }: HeaderProps) {
           >
             <div className="text-right hidden md:block">
               <p className="text-sm font-medium text-main">{user?.name}</p>
-              <p className="text-xs text-muted">{user?.email}</p>
+              <p className="text-xs text-muted">{user?.role === 'admin' ? 'Administrador' : 'Herói'}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-aux flex items-center justify-center text-gray-900 border-2 border-secondary/30">
+            <div className="h-10 w-10 rounded-full bg-aux flex items-center justify-center text-gray-900 border-2 border-secondary/30 overflow-hidden">
               <User size={20} />
             </div>
           </button>
 
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1a1d24] rounded-md shadow-lg py-1 border border-secondary/20 ring-1 ring-black ring-opacity-5">
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1a1d24] rounded-md shadow-lg py-1 border border-secondary/20 ring-1 ring-black ring-opacity-5 z-50">
               <div className="px-4 py-2 border-b border-secondary/20 md:hidden">
                 <p className="text-sm text-main">{user?.name}</p>
                 <p className="text-xs text-muted">{user?.email}</p>
