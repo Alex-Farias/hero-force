@@ -63,18 +63,25 @@ Certifique-se de ter o **Node.js**, **Docker** e o **Docker Compose** instalados
     docker-compose up --build
     ```
 
-4.  **Acessar a aplicação:**
+4.  **Referencia de user admin inicial e persona escolhida: Arqueiro Verde**
+    Na pasta `D:\Projects\_technical-tests\hero-force\backend\src\seed\seed.service.ts` é possível encontrar
+    ```
+    ... const adminEmail = 'arqueiro@heroforce.com'; ...
+    ... const hashedPassword = await bcrypt.hash('Arrow&Quiver.2001', salt); ...
+    ```
+
+5.  **Acessar a aplicação:**
     -   Frontend: [http://localhost:5173](http://localhost:5173)
     -   Documentação da API (Swagger): [http://localhost:3000/api](http://localhost:3000/api) (ajustar porta se necessário)
 
-5.  **(Opcional) Instalar dependências do Backend:**
+6.  **(Opcional) Instalar dependências do Backend:**
     ```bash
     cd backend
     npm install
     cd ..
     ```
 
-6.  **(Opcional) Instalar dependências do Frontend:**
+7.  **(Opcional) Instalar dependências do Frontend:**
     ```bash
     cd frontend
     npm install
