@@ -1,33 +1,49 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { UserEntity, UserRole } from "../entities/user.entity";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { UserEntity, UserRole } from '../entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UserCreateDto {
-    @IsString()
-    @IsNotEmpty()
-    name: string;
+  @ApiProperty({ description: 'Nome do Herói', example: 'Tony Stark' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsOptional()
-    @IsEnum(UserRole)
-    role?: UserRole;
+  @ApiProperty({
+    description: 'Papel do usuário',
+    enum: UserRole,
+    default: UserRole.HERO,
+    required: false,
+    example: 'hero',
+  })
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
 
-    @IsString()
-    @IsNotEmpty()
-    email: string;
-    
-    @IsString()
-    @IsNotEmpty()
-    password: string;
-    
-    @IsString()
-    @IsOptional()
-    persona?: string;
+  @ApiProperty({ description: 'Email do Herói', example: 'tony@stark.com' })
+  @IsString()
+  @IsNotEmpty()
+  email: string;
 
-    constructor(user?: Partial<UserEntity>) {
-        if (user) {
-            this.name = user.name!;
-            this.email = user.email!;
-            this.password = user.password!;
-            this.persona = user.persona;
-        }
+  @ApiProperty({ description: 'Senha de acesso', example: 'jarvis123' })
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+
+  @ApiProperty({
+    description: 'Persona/Identidade Secreta',
+    example: 'Iron Man',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  persona?: string;
+
+  constructor(user?: Partial<UserEntity>) {
+    if (user) {
+      this.name = user.name!;
+      this.email = user.email!;
+      this.password = user.password!;
+      this.persona = user.persona;
     }
+  }
 }

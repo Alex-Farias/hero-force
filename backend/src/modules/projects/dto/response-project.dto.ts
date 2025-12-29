@@ -1,51 +1,70 @@
-import { IsBoolean, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { ProjectEntity } from "../entities/project.entity";
-import { UserResponseDto } from "src/modules/users/dto/response-user.dto";
-import { UserEntity } from "src/modules/users/entities/user.entity";
+import {
+  IsBoolean,
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { ProjectEntity } from '../entities/project.entity';
+import { UserResponseDto } from '../../users/dto/response-user.dto';
+import { UserEntity } from '../../users/entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class ProjectResponseDto {
-    @IsNumber()
-    @IsNotEmpty()
-    id: number;
+  @ApiProperty({ description: 'ID do projeto' })
+  @IsNumber()
+  @IsNotEmpty()
+  id: number;
 
-    @IsString()
-    @IsNotEmpty()
-    name: string;
-    
-    @IsString()
-    @IsNotEmpty()
-    description: string;
-    
-    @IsString()
-    @IsNotEmpty()
-    status: string;
-    
-    @IsString()
-    @IsNotEmpty()
-    goals: string;
-    
-    @IsNumber()
-    @IsNotEmpty()
-    user: UserResponseDto;
+  @ApiProperty({ description: 'Nome da Missão/Projeto' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsDate()
-    @IsOptional()
-    createdAt?: Date;
+  @ApiProperty({ description: 'Descrição da missão' })
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-    @IsBoolean()
-    @IsOptional()
-    isActive?: boolean;
+  @ApiProperty({ description: 'Status da missão' })
+  @IsString()
+  @IsNotEmpty()
+  status: string;
 
-    constructor(project?: Partial<ProjectEntity>) {
-        if(project) {
-            this.id = project.id_project!;
-            this.name = project.name!;
-            this.description = project.description!;
-            this.status = project.status!;
-            this.goals = project.goals!;
-            this.user = new UserResponseDto(project.user!);
-            this.createdAt = project.createdAt;
-            this.isActive = project.isActive;
-        }
+  @ApiProperty({ description: 'Objetivos da missão' })
+  @IsString()
+  @IsNotEmpty()
+  goals: string;
+
+  @ApiProperty({
+    description: 'Herói responsável',
+    type: () => UserResponseDto,
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  user: UserResponseDto;
+
+  @ApiProperty({ description: 'Data de criação' })
+  @IsDate()
+  @IsOptional()
+  createdAt?: Date;
+
+  @ApiProperty({ description: 'Status de atividade' })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  constructor(project?: Partial<ProjectEntity>) {
+    if (project) {
+      this.id = project.id_project!;
+      this.name = project.name!;
+      this.description = project.description!;
+      this.status = project.status!;
+      this.goals = project.goals!;
+      this.user = new UserResponseDto(project.user);
+      this.createdAt = project.createdAt;
+      this.isActive = project.isActive;
     }
+  }
 }
