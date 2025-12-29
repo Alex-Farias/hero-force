@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode Colors */
+    --color-primary: 234 232 255; /* #EAE8FF */
+    --color-secondary: 89 181 238; /* #59B5EE */
+    --color-aux: 255 195 112; /* #FFC370 */
+    
+    --color-text-main: 12 12 29; /* Dark text for light bg */
+    --color-text-muted: 74 74 94;
+    
+    --color-positive: 73 220 177; /* #49DCB1 */
+    --color-negative: 219 80 74; /* #DB504A */
+  }
+
+  .dark {
+    /* Dark Mode Colors */
+    --color-primary: 12 12 29; /* #0C0C1D */
+    --color-secondary: 43 42 101; /* #2B2A65 */
+    --color-aux: 126 192 221; /* #7EC0DD */
+    
+    --color-text-main: 234 232 255; /* Light text for dark bg */
+    --color-text-muted: 160 160 176;
+  }
+  
+  body {
+    @apply bg-primary text-main transition-colors duration-300;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-primary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-secondary/50 rounded-full border-2 border-primary;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-aux/80;
+  }
+}
