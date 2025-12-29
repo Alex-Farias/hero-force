@@ -21,8 +21,9 @@ export class ProjectController {
     }
 
     @Post('create')
-    async create(@Body() dto: ProjectCreateDto): Promise<ProjectResponseDto> {
-        return this.userService.create(dto);
+    async create(@Body() dto: ProjectCreateDto, @Request() req): Promise<ProjectResponseDto> {
+        console.log('Received DTO in ProjectController.create:', dto);
+        return this.userService.create(dto, req.user);
     }
 
     @Put('update/:id')

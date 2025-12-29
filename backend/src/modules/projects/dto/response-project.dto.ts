@@ -26,7 +26,7 @@ export class ProjectResponseDto {
     
     @IsNumber()
     @IsNotEmpty()
-    user: UserEntity;
+    user: UserResponseDto;
 
     @IsDate()
     @IsOptional()
@@ -38,13 +38,12 @@ export class ProjectResponseDto {
 
     constructor(project?: Partial<ProjectEntity>) {
         if(project) {
-            console.log('Mapping ProjectEntity to ProjectResponseDto:', project);
             this.id = project.id_project!;
             this.name = project.name!;
             this.description = project.description!;
             this.status = project.status!;
             this.goals = project.goals!;
-            this.user = project.user!;
+            this.user = new UserResponseDto(project.user!);
             this.createdAt = project.createdAt;
             this.isActive = project.isActive;
         }

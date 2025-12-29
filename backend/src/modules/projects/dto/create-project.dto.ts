@@ -1,5 +1,5 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { ProjectStatus } from "../entities/project.entity";
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { ProjectEntity, ProjectStatus } from "../entities/project.entity";
 import { UserResponseDto } from "src/modules/users/dto/response-user.dto";
 
 export class ProjectCreateDto {
@@ -12,6 +12,7 @@ export class ProjectCreateDto {
     description: string;
     
     @IsOptional()
+    @IsEnum(ProjectStatus)
     status: ProjectStatus;
     
     @IsString()
@@ -19,6 +20,16 @@ export class ProjectCreateDto {
     goals: string;
     
     @IsNumber()
-    @IsNotEmpty()
-    userId: UserResponseDto;
+    @IsOptional()
+    user?: number;
+    
+    constructor(project?: Partial<ProjectEntity>) {
+        if(project) {
+            this.name = project.name!;
+            this.description = project.description!;
+            this.status = project.status!;
+            this.goals = project.goals!;
+            this.user = project.user?.id_user;
+        }
+    }
 }
