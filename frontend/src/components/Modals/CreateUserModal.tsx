@@ -1,76 +1,56 @@
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Save, User as UserIcon, Mail, Shield, Activity, Lock, Calendar, Building, Edit as EditIcon } from 'lucide-react';
-import { type User } from '../../mocks/factory';
+import { X, Save, User as UserIcon, Mail, Shield, Lock, UserPlus, Building } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
-const userSchema = z.object({
+const createUserSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
   email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
   role: z.enum(['admin', 'hero']),
-  isActive: z.boolean(),
-  password: z.string().optional(),
   persona: z.string().optional(),
 });
 
-export type UserFormData = z.infer<typeof userSchema>;
+export type CreateUserFormData = z.infer<typeof createUserSchema>;
 
-interface EditUserModalProps {
+interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: UserFormData) => Promise<void>;
-  user: User | null;
+  onSave: (data: CreateUserFormData) => Promise<void>;
 }
 
-export function EditUserModal({ isOpen, onClose, onSave, user }: EditUserModalProps) {
+export function CreateUserModal({ isOpen, onClose, onSave }: CreateUserModalProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
+  } = useForm<CreateUserFormData>({
+    resolver: zodResolver(createUserSchema),
     defaultValues: {
       name: '',
       email: '',
-      role: 'hero',
-      isActive: true,
       password: '',
+      role: 'hero',
       persona: '',
     },
   });
 
-  useEffect(() => {
-    if(user) {
-      reset({
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-        password: '',
-        persona: user.persona || '',
-      });
-    }
-  }, [user, reset]);
-
-  const handleFormSubmit = async (data: UserFormData) => {
-    const payload = { ...data };
-    if (!payload.password) {
-      delete payload.password;
-    }
-    await onSave(payload);
+  const handleFormSubmit = async (data: CreateUserFormData) => {
+    await onSave(data);
+    reset();
   };
 
-  if(!isOpen || !user) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#1a1d24] border border-secondary/20 rounded-xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center p-6 border-b border-secondary/20">
           <h2 className="text-xl font-bold text-main flex items-center gap-2">
-            <EditIcon className="text-primary" />
-            Editar Herói
+            <UserPlus className="text-primary" />
+            Novo Herói
           </h2>
           <button onClick={onClose} className="text-muted hover:text-main transition-colors p-2 rounded-lg hover:bg-secondary/10">
             <X size={20} />
@@ -144,23 +124,7 @@ export function EditUserModal({ isOpen, onClose, onSave, user }: EditUserModalPr
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted flex items-center gap-2">
-                <Activity size={16} /> Status
-              </label>
-              <select
-                {...register('isActive', { setValueAs: (v) => v === 'true' })}
-                className="w-full bg-secondary/10 border border-secondary/20 rounded-lg px-4 py-2.5 text-main focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary appearance-none cursor-pointer"
-              >
-                <option value="true">Ativo</option>
-                <option value="false">Inativo</option>
-              </select>
-              {errors.isActive && (
-                <span className="text-xs text-negative">{errors.isActive.message}</span>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted flex items-center gap-2">
-                <Lock size={16} /> Senha (Opcional)
+                <Lock size={16} /> Senha
               </label>
               <input
                 type="password"
@@ -170,25 +134,16 @@ export function EditUserModal({ isOpen, onClose, onSave, user }: EditUserModalPr
                     ? 'border-negative focus:ring-negative/50' 
                     : 'border-secondary/20 focus:ring-primary/50 focus:border-primary'
                 }`}
-                placeholder="Deixe em branco para manter a atual"
+                placeholder="••••••••"
               />
               {errors.password && (
                 <span className="text-xs text-negative">{errors.password.message}</span>
               )}
             </div>
+
+
           </div>
         </form>
-
-        <div className="px-6 py-4 bg-secondary/5 border-t border-secondary/20 grid grid-cols-2 gap-4 text-xs text-muted">
-          <div className="flex items-center gap-2">
-            <Calendar size={14} />
-            <span>Criado em: {new Date(user.createdAt).toLocaleDateString('pt-BR')}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar size={14} />
-            <span>Atualizado em: {new Date(user.updatedAt).toLocaleDateString('pt-BR')}</span>
-          </div>
-        </div>
 
         <div className="p-6 border-t border-secondary/20 flex justify-end gap-3 bg-secondary/5 rounded-b-xl">
           <button
@@ -203,13 +158,11 @@ export function EditUserModal({ isOpen, onClose, onSave, user }: EditUserModalPr
             disabled={isSubmitting}
             className="px-6 py-2 rounded-lg bg-positive text-white font-medium shadow-lg shadow-positive/20 hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save size={18} />
-            Salvar Alterações
+            {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+            Criar Usuário
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-

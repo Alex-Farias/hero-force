@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, Trash2, Edit, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { Search, Trash2, Edit, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { MockFactory, type User } from '../mocks/factory';
+import { type User } from '../mocks/factory';
+import { UsersService } from '../services/users.service';
 import { useSortableData } from '../hooks/useSortableData';
 import { ConfirmationModal } from '../components/Modals/ConfirmationModal';
 import { EditUserModal, type UserFormData } from '../components/Modals/EditUserModal';
+import { CreateUserModal, type CreateUserFormData } from '../components/Modals/CreateUserModal';
 
 export function Users() {
   const [users, setUsers] = useState<User[]>([]);
@@ -14,6 +16,7 @@ export function Users() {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { items: sortedUsers, requestSort, sortConfig } = useSortableData(users);
 
   useEffect(() => {
@@ -22,23 +25,54 @@ export function Users() {
 
   async function fetchUsers() {
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const mockUsers = MockFactory.generateUsers(12);
-      setUsers(mockUsers);
+      const data = await UsersService.getAll();
+      setUsers(data as unknown as User[]);
     } catch (error) {
-      toast.error('Erro ao carregar usuários');
+      toast.error('Erro ao carregar usuários', {
+        style: { borderColor: '#DB504A', color: '#DB504A' }
+      });
     } finally {
       setLoading(false);
     }
   }
 
-  const filteredUsers = sortedUsers.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = sortedUsers.filter(user => {
+    const lowerTerm = searchTerm.toLowerCase();
+    const roleLabel = user.role === 'admin' ? 'administrador' : 'herói';
+    const createdAt = new Date(user.createdAt).toLocaleDateString('pt-BR');
+    const updatedAt = new Date(user.updatedAt).toLocaleDateString('pt-BR');
+
+    return (
+      user.name.toLowerCase().includes(lowerTerm) ||
+      user.email.toLowerCase().includes(lowerTerm) ||
+      (user.persona?.toLowerCase().includes(lowerTerm)) ||
+      roleLabel.includes(lowerTerm) ||
+      createdAt.includes(lowerTerm) ||
+      updatedAt.includes(lowerTerm)
+    );
+  });
 
   const handleSort = (key: keyof User) => {
     requestSort(key);
+  };
+
+  const handleCreateUser = async (data: CreateUserFormData) => {
+    try {
+      await UsersService.create(data);
+      await fetchUsers();
+      toast.success(`Usuário ${data.name} criado com sucesso!`, {
+        style: { borderColor: '#49DCB1', color: '#49DCB1' }
+      });
+      setIsCreateModalOpen(false);
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        toast.error('Conflito: Email já está em uso.', {
+           style: { borderColor: '#DB504A', color: '#DB504A' }
+        });
+      } else {
+        toast.error('Erro ao criar usuário.', { style: { borderColor: '#DB504A', color: '#DB504A' } });
+      }
+    }
   };
 
   const confirmDelete = (user: User) => {
@@ -46,12 +80,22 @@ export function Users() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if(userToDelete) {
-      setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
-      toast.success(`Usuário ${userToDelete.name} removido com sucesso!`);
-      setIsDeleteModalOpen(false);
-      setUserToDelete(null);
+      try {
+        await UsersService.delete(userToDelete.id);
+        setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+        toast.success(`Usuário ${userToDelete.name} removido com sucesso!`, {
+          style: { borderColor: '#49DCB1', color: '#49DCB1' }
+        });
+      } catch (error) {
+        toast.error('Erro ao remover usuário', {
+          style: { borderColor: '#DB504A', color: '#DB504A' }
+        });
+      } finally {
+        setIsDeleteModalOpen(false);
+        setUserToDelete(null);
+      }
     }
   };
 
@@ -60,14 +104,32 @@ export function Users() {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveUser = (data: UserFormData) => {
+  const handleSaveUser = async (data: UserFormData) => {
     if(userToEdit) {
-      setUsers(prev => prev.map(u => 
-        u.id === userToEdit.id ? { ...u, ...data } : u
-      ));
-      toast.success(`Usuário ${data.name} atualizado com sucesso!`);
-      setIsEditModalOpen(false);
-      setUserToEdit(null);
+      try {
+        const { isActive: _isActive, ...payload } = data;
+        await UsersService.update(userToEdit.id, payload);
+        await fetchUsers();
+        toast.success(`Usuário ${data.name} atualizado com sucesso!`, {
+          style: { borderColor: '#49DCB1', color: '#49DCB1' }
+        });
+        setIsEditModalOpen(false);
+        setUserToEdit(null);
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          toast.error('Conflito: Email já está em uso.', {
+             style: { borderColor: '#DB504A', color: '#DB504A' }
+          });
+        } else if (error.response?.status === 404) {
+          toast.error('Usuário não encontrado.', {
+             style: { borderColor: '#DB504A', color: '#DB504A' }
+          });
+        } else {
+          toast.error('Erro ao atualizar usuário.', {
+             style: { borderColor: '#DB504A', color: '#DB504A' }
+          });
+        }
+      }
     }
   };
 
@@ -79,20 +141,23 @@ export function Users() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-main">Usuários</h1>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-initial">
+        <h1 className="text-3xl font-bold tracking-tight text-main">Heróis</h1>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted h-4 w-4" />
             <input 
               type="text" 
-              placeholder="Buscar usuários..." 
-              className="w-full sm:w-64 bg-secondary/30 border border-secondary/20 rounded-lg pl-10 pr-4 py-2 text-sm text-main placeholder-muted focus:ring-2 focus:ring-aux focus:outline-none transition-all"
+              placeholder="Buscar heróis..." 
+              className="w-full bg-secondary/10 border border-secondary/20 rounded-lg pl-10 pr-4 py-2 text-sm text-main focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="p-2 bg-secondary/30 border border-secondary/20 rounded-lg text-muted hover:text-main hover:bg-secondary/50 transition-colors">
-            <Filter size={20} />
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-aux hover:bg-aux/90 text-gray-900 px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-lg shadow-aux/20 whitespace-nowrap"
+          >
+            Novo Herói
           </button>
         </div>
       </div>
@@ -107,7 +172,15 @@ export function Users() {
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-2">
-                    Nome {getSortIcon('name')}
+                    Herói {getSortIcon('name')}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-4 cursor-pointer hover:bg-secondary/40 transition-colors group select-none hidden md:table-cell"
+                  onClick={() => handleSort('persona')}
+                >
+                  <div className="flex items-center gap-2">
+                    Persona {getSortIcon('persona')}
                   </div>
                 </th>
                 <th 
@@ -127,11 +200,27 @@ export function Users() {
                   </div>
                 </th>
                 <th 
-                  className="px-6 py-4 cursor-pointer hover:bg-secondary/40 transition-colors group select-none"
-                  onClick={() => handleSort('status')}
+                  className="px-6 py-4 cursor-pointer hover:bg-secondary/40 transition-colors group select-none hidden lg:table-cell"
+                  onClick={() => handleSort('createdAt')}
                 >
                   <div className="flex items-center gap-2">
-                    Status {getSortIcon('status')}
+                    Criado em {getSortIcon('createdAt')}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-4 cursor-pointer hover:bg-secondary/40 transition-colors group select-none hidden lg:table-cell"
+                  onClick={() => handleSort('updatedAt')}
+                >
+                  <div className="flex items-center gap-2">
+                    Atualizado em {getSortIcon('updatedAt')}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-4 cursor-pointer hover:bg-secondary/40 transition-colors group select-none"
+                  onClick={() => handleSort('isActive')}
+                >
+                  <div className="flex items-center gap-2">
+                    Ativo {getSortIcon('isActive')}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-right">Ações</th>
@@ -140,54 +229,62 @@ export function Users() {
             <tbody className="divide-y divide-secondary/10">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted animate-pulse">
+                  <td colSpan={8} className="px-6 py-12 text-center text-muted animate-pulse">
                     Carregando dados simulados...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted">
+                  <td colSpan={8} className="px-6 py-12 text-center text-muted">
                     Nenhum usuário encontrado.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-secondary/20 transition-colors group">
-                    <td className="px-6 py-4 font-medium text-main flex items-center gap-3">
-                      <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full ring-2 ring-secondary/30" />
+                    <td className="px-6 py-4 font-medium text-main">
                       {user.name}
+                    </td>
+                    <td className="px-6 py-4 hidden md:table-cell text-muted">
+                      {user.persona || '-'}
                     </td>
                     <td className="px-6 py-4">{user.email}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                        user.role === 'Admin' 
+                        user.role === 'admin' 
                           ? 'bg-aux/10 text-aux border-aux/20' 
                           : 'bg-secondary/40 text-muted border-secondary/20'
                       }`}>
-                        {user.role}
+                        {user.role === 'admin' ? 'Admin' : 'Hero'}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 hidden lg:table-cell">
+                      {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-6 py-4 hidden lg:table-cell">
+                      {new Date(user.updatedAt).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                        user.status === 'Active' 
+                        user.isActive 
                           ? 'bg-positive/10 text-positive border-positive/20' 
                           : 'bg-negative/10 text-negative border-negative/20'
                       }`}>
-                        {user.status}
+                        {user.isActive ? 'Sim' : 'Não'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right w-24">
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                         <button 
                           onClick={() => openEditModal(user)}
-                          className="p-2 rounded-lg hover:bg-aux/10 hover:text-aux transition-colors" 
+                          className="p-2 rounded-lg hover:bg-aux/10 hover:text-aux transition-colors flex-shrink-0" 
                           title="Editar"
                         >
                           <Edit size={16} />
                         </button>
                         <button 
                           onClick={() => confirmDelete(user)}
-                          className="p-2 rounded-lg hover:bg-negative/10 hover:text-negative transition-colors" 
+                          className="p-2 rounded-lg hover:bg-negative/10 hover:text-negative transition-colors flex-shrink-0" 
                           title="Excluir"
                         >
                           <Trash2 size={16} />
@@ -218,6 +315,12 @@ export function Users() {
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveUser}
         user={userToEdit}
+      />
+
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleCreateUser}
       />
     </div>
   );
